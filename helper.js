@@ -1,3 +1,130 @@
+/* localStorageData controller start */
+    let localData = [];
+    localData.set = (object, replacePrevValue=false)=>
+    {
+        let dataArray = localStorage.getItem('birdUpDown');
+            dataArray = (dataArray) ? JSON.parse(dataArray) : [];
+        
+        let myObjectKey   = Object.keys(object)[0];
+        let myObjectValue = object[myObjectKey];
+
+        
+        let isUpdatedDataArray = false;
+        for(let i = 0; i<dataArray.length; i++)
+        {
+            let singleData = dataArray[i];
+
+            if(!replacePrevValue && singleData[myObjectKey]>=0)
+            {
+                singleData[myObjectKey]  = (singleData[myObjectKey]+myObjectValue);
+                isUpdatedDataArray = true;
+                break;
+            }
+
+            if(replacePrevValue && Object.keys(singleData)[0] === myObjectKey)
+            {
+                console.log(dataArray.length);
+                dataArray.splice(i, 1);
+                isUpdatedDataArray = false;
+                console.log(dataArray.length);
+                i--;
+                break;
+            }
+        }
+
+        if(!isUpdatedDataArray){
+            dataArray.push(object);
+        }
+        
+        
+        localStorage.setItem('birdUpDown', JSON.stringify(dataArray));
+    }
+
+    localData.get = (param)=>
+    {
+        let data      = localStorage.getItem('birdUpDown');
+        let dataArray = (data) ? JSON.parse(data) : [];
+
+        
+        let value;
+
+        for(let i = 0; i<dataArray.length; i++)
+        {
+            let singleData = dataArray[i];
+            
+            if(Object.keys(singleData)[0] === param)
+            {
+                value = Object.values(singleData)[0];
+                return value;
+            }
+        }
+    }
+
+    localData.exist = ()=>{
+        if(localStorage.getItem('birdUpDown')){
+            return true;
+        }
+        return false;
+    }
+/* localStorageData controller end */
+
+
+
+
+
+/* audio helper start */
+    class MyAudio{
+        constructor(audioSrc, volume, loop=false){
+            this.audioElement = false;
+            this.volume       = 0;
+            this.audioSrc     = audioSrc;
+            this.volume       = volume;
+            this.loop         = loop;
+
+            this.load();
+        }
+
+        load()
+        {
+            this.audioElement = new Audio(this.audioSrc);
+            this.audioElement.volume = this.volume;
+            return this;
+        }
+        
+        play()
+        {
+            this.reset();
+
+            if(this.audioElement.paused)
+            {
+                this.duration = this.audioElement.duration;
+                this.audioElement.loop   = this.loop;
+
+                this.audioElement.play();
+                return this.audioElement;
+            }
+        }
+
+        stop()
+        {
+            if(!this.audioElement.paused)
+            {
+                this.audioElement.pause()
+            }
+        }
+
+        reset(){
+            
+            if(this.audioElement)
+                this.audioElement.currentTime = 0;
+        }
+    }
+/* audio helper end */
+
+
+
+
+
 /* this method ditect collition between circle and rect */
 function ditectCircleRectColition(x,y,r, X,Y,W,H, onlyXColition=false)
 {
@@ -21,8 +148,6 @@ function ditectCircleRectColition(x,y,r, X,Y,W,H, onlyXColition=false)
     }
     return (xDitection);
 }
-
-
 
 
 /* this method ditect collition between two rect */

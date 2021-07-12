@@ -9,6 +9,29 @@
   </head>
   <body>
     <div class="container">
+      <!-- game start page start -->
+      <div class="game_start_container">
+        <h1 class="gameOverText">Game Over</h1>
+        <div class="heigh_scoure">
+          Heigh Scoure <span id="heigh_scoure">0</span>
+        </div>
+        <h1 class="gameName">Bird Up & Down</h1>
+        <button
+          class="start_btn warning"
+          onclick="togglePause(); this.closest('.game_start_container').style.display = 'none'"
+        >
+          Start
+        </button>
+
+        <!-- game over part start -->
+        <div class="gameOverAndNextLevelBtnContainer">
+          <button class="re_start_btn primary">Restart</button>
+          <button class="next_level success deactive">Next Level</button>
+        </div>
+        <!-- game over part end -->
+      </div>
+      <!-- game start page end -->
+
       <ul class="display">
         <li>Life: <span id="life">0</span></li>
         <li>Scoure: <span id="scoure">0</span></li>
@@ -21,5 +44,6 @@
     </div>
     <script src="helper.js"></script>
     <script src="app.js"></script>
+    <script type="module" src="ui.js"></script>
   </body>
 </html>

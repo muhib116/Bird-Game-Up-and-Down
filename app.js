@@ -1,52 +1,22 @@
-class MyAudio{
-    constructor(audioSrc, volume, loop=false){
-        this.audioElement = false;
-        this.volume       = 0;
-        this.audioSrc     = audioSrc;
-        this.volume       = volume;
-        this.loop         = loop;
+let defaultSettupArray = [
+    {level: 1},
+    {life: 2},
+    {isSystemPause: false},
+    {levelScoureLimitDefault: 5},
+    {scoureRate: 5},
+    {scoure: 0},
+    {heighScoure: 0},
+    {shouldGoNextLevel: 0},
+    {isGameOver: 0},
+];
 
-        this.load();
-    }
 
-    load()
-    {
-        this.audioElement = new Audio(this.audioSrc);
-        this.audioElement.volume = this.volume;
-        return this;
-    }
-    
-    play()
-    {
-        this.reset();
-
-        if(this.audioElement.paused)
-        {
-            this.duration = this.audioElement.duration;
-            this.audioElement.loop   = this.loop;
-
-            this.audioElement.play();
-            return this.audioElement;
-        }
-    }
-
-    stop()
-    {
-        if(!this.audioElement.paused)
-        {
-            this.audioElement.pause()
-        }
-    }
-
-    reset(){
-        
-        if(this.audioElement)
-            this.audioElement.currentTime = 0;
-    }
+if(!localData.exist())
+{
+    defaultSettupArray.forEach(obj=>{
+        localData.set(obj);
+    });
 }
-
-
-
 
 
 
@@ -70,9 +40,10 @@ class MyAudio{
 
 
 /* game pause/start maneger start */
-    let isSystemPause = false;
+    let isSystemPause = localData.get('isSystemPause');
     let isPause       = true;
     let toggleStart   = document.getElementById('toggleStart');
+
 
     toggleStart.addEventListener('click', (e)=>
     {
@@ -83,6 +54,7 @@ class MyAudio{
             toggleStart.innerText = 'Start';
         }
     });
+    
 
     function togglePause()
     {
@@ -99,18 +71,17 @@ class MyAudio{
 
 
 
-/* scour, level, life controller start */
-    let life   = 2;
-    let level  = 1;
+/* scoure, level, life controller start */
+    let life  = localData.get('life');
+    let level = localData.get('level');
 
 
-    let levelScoureLimitDefault = 100;
+    let levelScoureLimitDefault = localData.get('levelScoureLimitDefault');
     let levelUplimit            = levelScoureLimitDefault * level;
     
     let obstacleSpeed = 1+level;
-    let scoureRate	  = 5;
-    let scoure    	  = 0;
-    
+    let scoureRate	  = localData.get('scoureRate');
+    let scoure    	  = localData.get('scoure');
     
     let lifeElement   = document.getElementById('life');
     let scoureElement = document.getElementById('scoure');
@@ -125,10 +96,11 @@ class MyAudio{
         if(life===0)
         {
             togglePause();
+            localData.set({isGameOver: 1}, true);
             isSystemPause = true;
         }
     }
-/* scour, level, life controller end */
+/* scoure, level, life controller end */
 
 
 
@@ -136,8 +108,8 @@ class MyAudio{
 /* sound start */
     let dieAudio      = new MyAudio('./audio/die.wav', 0.1);
     let bgAudio       = new MyAudio('./audio/bgMusic.mp3', 0.3, true);
-    let scourAudio    = new MyAudio('./audio/scour.wav', 0.3);
-    let level_upAudio = new MyAudio('./audio/level_up.wav', 0.4);
+    let scourAudio    = new MyAudio('./audio/scour.wav', 0.01);
+    let level_upAudio = new MyAudio('./audio/level_up.wav', 0.01);
 /* sound end */
 
 function run_background_music(status=true){
@@ -211,8 +183,12 @@ function run_background_music(status=true){
         {
             level_upAudio.play();
             
-            level++;
-            life++;
+            localData.set({life: 1});
+            localData.set({level: 1});
+            localData.set({shouldGoNextLevel: 1}, true);
+
+            level = localData.get('level');
+            life  = localData.get('life');
 
             // set speed for new level
             obstacleSpeed = 1+level;
@@ -234,11 +210,11 @@ function run_background_music(status=true){
         {
             this.fillColor = `hsl(${Math.floor(Math.random()*20+1)*(360/20)}deg, 80%, 50%)`;
 
-            this.vx = obstacleSpeed;
+            this.vx = (obstacleSpeed*0.8);
             this.vy = 0;
             
             this.minGap = 100;
-            this.maxGap = 150;
+            this.maxGap = 200;
             this.obstacleGap = Math.floor(Math.random()*this.maxGap + this.minGap);
 
             this.height = canvas.height-this.obstacleGap;
@@ -273,9 +249,10 @@ function run_background_music(status=true){
 
     function manageObstacle()
     {
+        let interval = ((100-(level*2))<level) ? level : (100-(level*2));
+        
         obstaclePrintCtrl++;
 
-        let interval = (120-level<level) ? level : (120-level);
         if(obstaclePrintCtrl % interval === 0){
             obstacleArray.push(new Obstacle());
         }
@@ -310,13 +287,14 @@ function run_background_music(status=true){
         {
             /* bird data start */
             this.flyController= 0;
-            this.flySpeed     = obstacleSpeed/0.6;
             this.totleFrames  = 14;
             this.spriteWidth  = Math.floor(2562/this.totleFrames);
             this.spriteHeight = 183;
             this.currentFrame = 0;
+
+            this.flySpeed     = 5;
             /* bird data end */
-            
+
 
             this.pWidth  = Math.floor(this.spriteWidth/4);
             this.pHeight = Math.floor(this.spriteHeight/4);
@@ -325,11 +303,13 @@ function run_background_music(status=true){
             
             this.x  = this.pWidth;
             this.y  = (canvas.height/2)-(this.pWidth/2);
+
             this.vx = 0;
-            this.vy = 1+level;
+            this.vy = 2+level;
 
             this.dx = 0;
             this.dy = 1;
+
 
             this.pressed = 0;
 
@@ -417,8 +397,9 @@ function ditectCollitionWithPlayer()
         {
             if(colition)
             {                
-                life = (life>0) ? (life-1) : 0;
-                
+                localData.set({life:-1});
+                life--;
+
                 dieAudio.play();
                 obstacle.canReduceLife = false;
                 // togglePause();
@@ -439,10 +420,18 @@ function ditectCollitionWithPlayer()
 
 function updateGameSpeedAndScour()
 {
-    scoure = scoure+(scoureRate*level);
-    scourAudio.play();
-    obstacleSpeed += 0.03;
+    localData.set({scoure: (scoureRate*level)});
 
+    
+    scoure = scoure+(scoureRate*level);
+    
+    let heigh_scoure = localData.get('heighScoure');
+    if(heigh_scoure<scoure)
+    {
+        localData.set({heighScoure: scoure}, true);
+    }
+
+    scourAudio.play();
     levelUp();
 }
 
